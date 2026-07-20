@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexJob | Admin Panel</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="../js/api.js"></script>
+</head>
+<body>
+
+    <div class="dashboard-grid">
+        <aside class="sidebar glass-panel" style="margin: 2rem 0 2rem 2rem; border-color: rgba(239, 68, 68, 0.4);">
+            <h2 style="color: var(--danger); margin-bottom: 2rem;">Admin Portal</h2>
+            <nav>
+                <a href="#" onclick="showSection('jobs')" class="active" id="nav-jobs">Manage Jobs</a>
+                <a href="#" onclick="showSection('applicants')" id="nav-applicants">View Applicants</a>
+                <a href="#" onclick="logout()">Logout</a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            
+            <!-- Jobs Section -->
+            <section id="jobsSection" class="animate-fade">
+                <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <h2>Manage Jobs</h2>
+                    <button class="btn btn-danger" onclick="openJobModal()">+ Add New Job</button>
+                </header>
+                
+                <div class="glass-panel" style="padding: 1rem; overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Title</th>
+                                <th>Company</th>
+                                <th>Location</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminJobsTableBody">
+                            <tr><td colspan="6">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Applicants Section -->
+            <section id="applicantsSection" class="animate-fade" style="display: none;">
+                <header style="margin-bottom: 2rem;">
+                    <h2>Received Applications</h2>
+                </header>
+                
+                <div class="glass-panel" style="padding: 1rem; overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Applicant Email</th>
+                                <th>Job Title</th>
+                                <th>Resume</th>
+                            </tr>
+                        </thead>
+                        <tbody id="applicantsTableBody">
+                            <tr><td colspan="4">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Add/Edit Job Modal -->
+    <div id="jobModal" class="glass-panel" style="display: none; position: fixed; top: 10%; left: 50%; transform: translateX(-50%); padding: 2rem; z-index: 100; max-width: 500px; width: 100%; max-height: 80vh; overflow-y: auto;">
+        <h3 id="jobModalTitle">Add Job</h3>
+        <form id="jobForm">
+            <input type="hidden" id="jobId">
+            <input type="text" id="title" placeholder="Job Title" required>
+            <input type="text" id="company" placeholder="Company Name" required>
+            <input type="text" id="location" placeholder="Location" required>
+            <input type="text" id="salary" placeholder="Salary (e.g., $80k - $100k)" required>
+            <select id="category" required>
+                <option value="Software Development">Software Development</option>
+                <option value="QA &amp; Testing">QA &amp; Testing</option>
+                <option value="Data &amp; AI">Data &amp; AI</option>
+                <option value="Cloud &amp; DevOps">Cloud &amp; DevOps</option>
+                <option value="Design &amp; Product">Design &amp; Product</option>
+                <option value="Business &amp; Operations">Business &amp; Operations</option>
+                <option value="Mobile Development">Mobile Development</option>
+                <option value="Enterprise Systems">Enterprise Systems</option>
+            </select>
+            <select id="experience" required>
+                <option value="0-2 years">0-2 years</option><option value="3-5 years">3-5 years</option>
+                <option value="6-8 years">6-8 years</option><option value="9+ years">9+ years</option>
+            </select>
+            <select id="jobType"><option value="Full-Time">Full-Time</option><option value="Internship">Internship</option><option value="Contract">Contract</option></select>
+            <select id="status">
+                <option value="Open">Open</option>
+                <option value="Closed">Closed</option>
+            </select>
+            <textarea id="description" placeholder="Job Description" rows="4" required></textarea>
+            
+            <div style="display: flex; gap: 10px; margin-top: 1rem;">
+                <button type="submit" class="btn btn-danger" style="flex: 1;">Save Job</button>
+                <button type="button" class="btn" style="background: rgba(255,255,255,0.1);" onclick="closeJobModal()">Cancel</button>
+            </div>
+        </form>
+    </div>
+    
+    <div id="overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 99;"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', loadAdminJobs);
+
+        function showSection(section) {
+            document.getElementById('jobsSection').style.display = section === 'jobs' ? 'block' : 'none';
+            document.getElementById('applicantsSection').style.display = section === 'applicants' ? 'block' : 'none';
+            document.getElementById('nav-jobs').className = section === 'jobs' ? 'active' : '';
+            document.getElementById('nav-applicants').className = section === 'applicants' ? 'active' : '';
+            
+            if(section === 'jobs') loadAdminJobs();
+            if(section === 'applicants') loadApplicants();
+        }
+
+        let adminJobs = [];
+
+        async function loadAdminJobs() {
+            const res = await fetchAPI('viewjobs');
+            const tbody = document.getElementById('adminJobsTableBody');
+            
+            if (res.status === 'success') {
+                adminJobs = res.data;
+                if(res.data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6">No jobs found.</td></tr>';
+                    return;
+                }
+                
+                tbody.innerHTML = res.data.map(job => `
+                    <tr>
+                        <td>#${job.id}</td>
+                        <td><strong>${job.title}</strong></td>
+                        <td>${job.company}</td>
+                        <td>${job.location}</td>
+                        <td><span class="badge ${job.status === 'Open' ? 'text-success' : 'text-danger'}">${job.status}</span></td>
+                        <td>
+                            <button class="btn" style="padding: 6px 12px; font-size: 0.8em; margin-right: 5px;" onclick="editJob(${job.id})">Edit</button>
+                            <button class="btn" style="padding: 6px 12px; font-size: 0.8em; background: rgba(239, 68, 68, 0.2); color: var(--danger);" onclick="deleteJob(${job.id})">Delete</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } else {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-danger">Failed to load jobs</td></tr>`;
+            }
+        }
+
+        async function loadApplicants() {
+            const res = await fetchAPI('viewapplicants');
+            const tbody = document.getElementById('applicantsTableBody');
+            
+            if (res.status === 'success') {
+                if(res.data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4">No applications received yet.</td></tr>';
+                    return;
+                }
+                
+                tbody.innerHTML = res.data.map(app => `
+                    <tr>
+                        <td>#${app.id}</td>
+                        <td>${app.user_email}</td>
+                        <td>${app.job_title}</td>
+                        <td><a href="../resume/${app.resume}" target="_blank" style="color: var(--accent);">View Resume</a></td>
+                    </tr>
+                `).join('');
+            } else {
+                tbody.innerHTML = `<tr><td colspan="4" class="text-danger">Failed to load applicants</td></tr>`;
+            }
+        }
+
+        // Job Modal Logic
+        function openJobModal() {
+            document.getElementById('jobForm').reset();
+            document.getElementById('jobId').value = '';
+            document.getElementById('jobModalTitle').innerText = 'Add New Job';
+            document.getElementById('jobModal').style.display = 'block';
+            document.getElementById('overlay').style.display = 'block';
+        }
+        
+        function editJob(id) {
+            const job = adminJobs.find(j => j.id === id);
+            if(!job) return;
+            
+            document.getElementById('jobId').value = job.id;
+            document.getElementById('title').value = job.title;
+            document.getElementById('company').value = job.company;
+            document.getElementById('location').value = job.location;
+            document.getElementById('salary').value = job.salary;
+            document.getElementById('category').value = job.category || 'Software Development';
+            document.getElementById('experience').value = job.experience || '0-2 years';
+            document.getElementById('jobType').value = job.jobType || 'Full-Time';
+            document.getElementById('status').value = job.status;
+            document.getElementById('description').value = job.description;
+
+            document.getElementById('jobModalTitle').innerText = 'Edit Job #' + id;
+            document.getElementById('jobModal').style.display = 'block';
+            document.getElementById('overlay').style.display = 'block';
+        }
+
+        function closeJobModal() {
+            document.getElementById('jobModal').style.display = 'none';
+            document.getElementById('overlay').style.display = 'none';
+        }
+
+        document.getElementById('jobForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('jobId').value;
+            const endpoint = id ? 'updatejob' : 'addjob';
+            
+            const payload = {
+                title: document.getElementById('title').value,
+                company: document.getElementById('company').value,
+                location: document.getElementById('location').value,
+                salary: document.getElementById('salary').value,
+                category: document.getElementById('category').value,
+                experience: document.getElementById('experience').value,
+                jobType: document.getElementById('jobType').value,
+                status: document.getElementById('status').value,
+                description: document.getElementById('description').value
+            };
+            if(id) payload.id = id;
+
+            const res = await fetchAPI(endpoint, 'POST', payload);
+            if(res.status === 'success') {
+                showMessage('Job saved successfully');
+                closeJobModal();
+                loadAdminJobs();
+            } else {
+                showMessage(res.message || 'Error saving job', true);
+            }
+        });
+
+        async function deleteJob(id) {
+            if(confirm('Are you sure you want to delete this job?')) {
+                const res = await fetchAPI('deletejob', 'POST', { id });
+                if(res.status === 'success') {
+                    showMessage('Job deleted');
+                    loadAdminJobs();
+                } else {
+                    showMessage(res.message || 'Failed to delete job', true);
+                }
+            }
+        }
+
+        async function logout() {
+            const res = await fetchAPI('logout', 'POST');
+            window.location.href = '../index.html';
+        }
+    </script>
+</body>
+</html>

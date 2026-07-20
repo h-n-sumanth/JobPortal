@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexJob | My Profile</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="../js/api.js"></script>
+</head>
+<body>
+    <div class="dashboard-grid">
+        <aside class="sidebar glass-panel">
+            <h2 style="color:var(--accent);margin-bottom:2rem;">NexJob</h2>
+            <nav>
+                <a href="dashboard.html">Find Jobs</a>
+                <a href="myapplications.html">My Applications</a>
+                <a href="profile.html" class="active">My Profile</a>
+                <a href="#" onclick="logout()">Logout</a>
+            </nav>
+        </aside>
+        <main class="main-content">
+            <header class="page-header">
+                <div><p class="eyebrow">Candidate profile</p><h2 style="margin-bottom:4px;">My Profile</h2><p style="margin:0;font-size:.9rem;">Keep your details and resume library ready for quick applications.</p></div>
+            </header>
+
+            <div class="profile-layout">
+                <section class="glass-panel profile-card">
+                    <h3>Basic details</h3>
+                    <form id="profileForm">
+                        <div class="profile-picture-row">
+                            <div id="avatarFallback" class="avatar-fallback">U</div>
+                            <img id="profilePreview" class="profile-preview" alt="Profile preview" hidden>
+                            <label class="btn btn-outline upload-photo-label">Change photo<input id="profilePicture" type="file" name="profilePicture" accept="image/png,image/jpeg,image/webp" hidden></label>
+                        </div>
+                        <label>Full name<input id="name" name="name" type="text" required></label>
+                        <label>Email address<input id="email" type="email" disabled></label>
+                        <div class="form-two-columns">
+                            <label>Gender<select id="gender" name="gender"><option value="">Prefer not to say</option><option>Female</option><option>Male</option><option>Non-binary</option><option>Other</option></select></label>
+                            <label>Phone number<input id="phone" name="phone" type="tel" placeholder="+91 98765 43210" required></label>
+                        </div>
+                        <button class="btn btn-accent" type="submit">Save profile</button>
+                    </form>
+                </section>
+
+                <section class="glass-panel resumes-card">
+                    <div class="section-heading"><div><h3>Resume library</h3><p>Save up to four PDF or Word resumes. Choose one when you apply.</p></div><span id="resumeCount" class="badge">0 / 4</span></div>
+                    <form id="resumeForm" class="resume-upload-form">
+                        <input id="resumeFile" type="file" name="resume" accept=".pdf,.doc,.docx" required>
+                        <button id="uploadResumeButton" class="btn btn-outline" type="submit">Add resume</button>
+                    </form>
+                    <div id="resumeList" class="resume-list"><p>Loading resumes...</p></div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let resumes = [];
+        document.addEventListener('DOMContentLoaded', initialiseProfile);
+        document.getElementById('profilePicture').addEventListener('change', previewPhoto);
+        document.getElementById('profileForm').addEventListener('submit', saveProfile);
+        document.getElementById('resumeForm').addEventListener('submit', uploadResume);
+
+        async function initialiseProfile() {
+            const [profile, resumeResponse] = await Promise.all([fetchAPI('profile'), fetchAPI('resumes')]);
+            if (profile.status !== 'success') { window.location.href = 'login.html'; return; }
+            document.getElementById('name').value = profile.name || '';
+            document.getElementById('email').value = profile.email || '';
+            document.getElementById('gender').value = profile.gender || '';
+            document.getElementById('phone').value = profile.phone || '';
+            setAvatar(profile.name, profile.profilePicture);
+            if (resumeResponse.status === 'success') { resumes = resumeResponse.data; renderResumes(); }
+        }
+
+        function setAvatar(name, file) {
+            const fallback = document.getElementById('avatarFallback'); const image = document.getElementById('profilePreview');
+            fallback.innerText = (name || 'U').trim().charAt(0).toUpperCase();
+            if (!file) return;
+            image.src = '../profile-pictures/' + encodeURIComponent(file); image.hidden = false; fallback.hidden = true;
+        }
+
+        function previewPhoto() {
+            const file = this.files[0]; if (!file) return;
+            const image = document.getElementById('profilePreview');
+            image.src = URL.createObjectURL(file); image.hidden = false; document.getElementById('avatarFallback').hidden = true;
+        }
+
+        async function saveProfile(event) {
+            event.preventDefault();
+            const button = event.target.querySelector('button[type="submit"]'); button.disabled = true; button.innerText = 'Saving...';
+            const body = new FormData(event.target);
+            const response = await fetchAPI('profile', 'POST', body);
+            button.disabled = false; button.innerText = 'Save profile';
+            showMessage(response.message || 'Profile saved', response.status !== 'success');
+        }
+
+        async function uploadResume(event) {
+            event.preventDefault();
+            const button = document.getElementById('uploadResumeButton'); button.disabled = true; button.innerText = 'Uploading...';
+            const response = await fetchAPI('resumes', 'POST', new FormData(event.target));
+            button.disabled = false; button.innerText = 'Add resume';
+            if (response.status !== 'success') { showMessage(response.message || 'Unable to add resume', true); return; }
+            document.getElementById('resumeFile').value = ''; showMessage(response.message); await refreshResumes();
+        }
+
+        async function removeResume(id) {
+            const response = await fetchAPI('resumes', 'POST', { action: 'delete', id });
+            if (response.status === 'success') { showMessage(response.message); await refreshResumes(); }
+            else showMessage(response.message || 'Unable to remove resume', true);
+        }
+
+        async function refreshResumes() { const response = await fetchAPI('resumes'); if (response.status === 'success') { resumes = response.data; renderResumes(); } }
+        function renderResumes() {
+            document.getElementById('resumeCount').innerText = `${resumes.length} / 4`;
+            document.getElementById('uploadResumeButton').disabled = resumes.length >= 4;
+            const list = document.getElementById('resumeList');
+            if (!resumes.length) { list.innerHTML = '<p class="resume-empty">No saved resumes yet. Upload your primary resume to make applying faster.</p>'; return; }
+            list.innerHTML = resumes.map((resume, index) => `<div class="resume-item"><div class="resume-icon">${index + 1}</div><div><strong>${escapeHTML(resume.fileName)}</strong><p>Saved resume ${index + 1}</p></div><div class="resume-actions"><a href="../resume/${encodeURIComponent(resume.storedName)}" target="_blank">View</a><button type="button" onclick="removeResume(${Number(resume.id)})">Remove</button></div></div>`).join('');
+        }
+        function escapeHTML(value) { const div = document.createElement('div'); div.textContent = value ?? ''; return div.innerHTML; }
+        async function logout() { await fetchAPI('logout', 'POST'); window.location.href = '../index.html'; }
+    </script>
+</body>
+</html>

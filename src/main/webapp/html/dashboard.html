@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexJob | Jobs</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="../js/api.js"></script>
+</head>
+<body>
+    <div class="dashboard-grid">
+        <aside class="sidebar glass-panel">
+            <h2 style="color:var(--accent);margin-bottom:2rem;">NexJob</h2>
+            <nav>
+                <a href="dashboard.html" class="active">Find Jobs</a>
+                <a href="myapplications.html">My Applications</a>
+                <a href="profile.html">My Profile</a>
+                <a href="#" onclick="logout()">Logout</a>
+            </nav>
+        </aside>
+        <main class="main-content">
+            <header class="page-header">
+                <div>
+                    <p class="eyebrow">Career discovery</p>
+                    <h2 style="margin-bottom:4px;">Find your next opportunity</h2>
+                    <p style="margin:0;font-size:0.9rem;">Choose filters, then click a job to view its complete description and apply.</p>
+                </div>
+                <div class="user-chip glass-panel"><span id="userGreeting">Welcome</span></div>
+            </header>
+
+            <section class="glass-panel filter-panel" aria-label="Job filters">
+                <div class="filter-heading"><strong>Refine jobs</strong><button type="button" class="text-button" onclick="clearFilters()">Clear filters</button></div>
+                <div class="filter-grid">
+                    <label>Keyword<input id="keywordFilter" type="search" placeholder="Java, Selenium, analyst..."></label>
+                    <label>Category
+                        <select id="categoryFilter">
+                            <option value="all">All categories</option>
+                            <option>Software Development</option><option>QA &amp; Testing</option><option>Data &amp; AI</option>
+                            <option>Cloud &amp; DevOps</option><option>Design &amp; Product</option><option>Business &amp; Operations</option>
+                            <option>Mobile Development</option><option>Enterprise Systems</option>
+                        </select>
+                    </label>
+                    <label>Experience
+                        <select id="experienceFilter"><option value="all">Any experience</option><option>0-2 years</option><option>3-5 years</option><option>6-8 years</option><option>9+ years</option></select>
+                    </label>
+                    <label>Location<input id="locationFilter" type="search" placeholder="Bengaluru, Pune..."></label>
+                </div>
+                <button class="btn btn-accent" type="button" onclick="loadJobs()">Search jobs</button>
+            </section>
+
+            <div class="results-bar"><span id="resultCount">Loading jobs...</span></div>
+            <div id="jobsContainer" class="jobs-grid"></div>
+        </main>
+    </div>
+
+    <div id="detailsModal" class="modal-shell" role="dialog" aria-modal="true" aria-labelledby="jobDetailsTitle" hidden>
+        <div class="glass-panel job-details-modal">
+            <button class="modal-close" type="button" onclick="closeJobDetails()" aria-label="Close job details">&times;</button>
+            <div id="jobDetailsContent"></div>
+            <div class="apply-box" id="applyBox"></div>
+        </div>
+    </div>
+
+    <script>
+        let allJobs = [];
+        let savedResumes = [];
+        let activeJob = null;
+
+        document.addEventListener('DOMContentLoaded', initialiseDashboard);
+        ['keywordFilter', 'locationFilter'].forEach(id => document.getElementById(id).addEventListener('keydown', event => {
+            if (event.key === 'Enter') loadJobs();
+        }));
+
+        async function initialiseDashboard() {
+            const userRes = await fetchAPI('currentuser');
+            if (userRes.status !== 'success') { window.location.href = 'login.html'; return; }
+            document.getElementById('userGreeting').innerText = 'Welcome, ' + userRes.name;
+            await Promise.all([loadJobs(), loadResumes()]);
+        }
+
+        function filters() {
+            const values = {
+                keyword: document.getElementById('keywordFilter').value.trim(),
+                category: document.getElementById('categoryFilter').value,
+                experience: document.getElementById('experienceFilter').value,
+                location: document.getElementById('locationFilter').value.trim()
+            };
+            return new URLSearchParams(Object.entries(values).filter(([, value]) => value && value !== 'all')).toString();
+        }
+
+        async function loadJobs() {
+            const container = document.getElementById('jobsContainer');
+            container.innerHTML = '<p>Loading matching jobs...</p>';
+            const query = filters();
+            const res = await fetchAPI('viewjobs' + (query ? '?' + query : ''));
+            if (res.status !== 'success') {
+                container.innerHTML = '<p class="text-danger">' + escapeHTML(res.message || 'Unable to load jobs') + '</p>';
+                return;
+            }
+            allJobs = res.data;
+            document.getElementById('resultCount').innerText = `${allJobs.length} job${allJobs.length === 1 ? '' : 's'} found`;
+            if (!allJobs.length) {
+                container.innerHTML = '<div class="empty-state glass-panel"><div class="icon">⌕</div><h3>No matching jobs yet</h3><p>Try a broader keyword or clear one of the filters.</p></div>';
+                return;
+            }
+            container.innerHTML = allJobs.map((job, index) => jobCard(job, index)).join('');
+        }
+
+        function jobCard(job, index) {
+            const open = String(job.status).toLowerCase() === 'open';
+            return `<article class="glass-panel job-card animate-fade" style="animation-delay:${index * 0.04}s">
+                <div class="job-card-top"><span class="job-category">${escapeHTML(job.category || 'General')}</span><span class="badge ${open ? 'text-success' : 'text-danger'}">${escapeHTML(job.status)}</span></div>
+                <h3>${escapeHTML(job.title)}</h3>
+                <h4>${escapeHTML(job.company)} <span>&bull;</span> ${escapeHTML(job.location)}</h4>
+                <p class="salary">${escapeHTML(job.salary)}</p>
+                <div class="job-meta"><span>${escapeHTML(job.experience || 'Experience not specified')}</span><span>${escapeHTML(job.jobType || 'Full-Time')}</span></div>
+                <button type="button" class="btn btn-outline" onclick="openJobDetails(${Number(job.id)})">View job description</button>
+            </article>`;
+        }
+
+        async function loadResumes() {
+            const res = await fetchAPI('resumes');
+            savedResumes = res.status === 'success' ? res.data : [];
+        }
+
+        function openJobDetails(id) {
+            activeJob = allJobs.find(job => Number(job.id) === Number(id));
+            if (!activeJob) return;
+            const open = String(activeJob.status).toLowerCase() === 'open';
+            document.getElementById('jobDetailsContent').innerHTML = `
+                <p class="eyebrow">${escapeHTML(activeJob.category || 'Job opportunity')}</p>
+                <h2 id="jobDetailsTitle">${escapeHTML(activeJob.title)}</h2>
+                <p class="company-line">${escapeHTML(activeJob.company)} &bull; ${escapeHTML(activeJob.location)}</p>
+                <div class="details-meta"><span class="salary">${escapeHTML(activeJob.salary)}</span><span>${escapeHTML(activeJob.experience || '')}</span><span>${escapeHTML(activeJob.jobType || '')}</span></div>
+                <div class="description-content">${descriptionHTML(activeJob.description)}</div>`;
+            document.getElementById('applyBox').innerHTML = applicationHTML(open);
+            document.getElementById('detailsModal').hidden = false;
+            document.body.classList.add('modal-open');
+        }
+
+        function applicationHTML(open) {
+            if (!open) return '<p class="text-danger">This position is currently closed.</p>';
+            if (!savedResumes.length) return '<h3>Ready to apply?</h3><p>Add a resume to your profile once, then reuse it for every application.</p><a class="btn btn-accent" href="profile.html">Add a resume in My Profile</a>';
+            const options = savedResumes.map(resume => `<option value="${Number(resume.id)}">${escapeHTML(resume.fileName)}</option>`).join('');
+            return `<h3>Apply with a saved resume</h3><p>Choose one of your ${savedResumes.length} saved resumes. You can manage up to four from your profile.</p>
+                <div class="apply-row"><select id="resumeSelect" aria-label="Choose resume">${options}</select><button type="button" class="btn btn-accent" onclick="submitApplication()">Apply now</button></div>
+                <a class="small-link" href="profile.html">Manage my resumes</a>`;
+        }
+
+        async function submitApplication() {
+            const resume = document.getElementById('resumeSelect');
+            const response = await fetchAPI('applyjob', 'POST', { jobId: activeJob.id, resumeId: resume.value });
+            if (response.status === 'success') { showMessage(response.message); closeJobDetails(); }
+            else showMessage(response.message || 'Unable to apply', true);
+        }
+
+        function descriptionHTML(raw) {
+            if (!raw) return '<p>No description provided.</p>';
+            return raw.split('|').map(part => {
+                const trimmed = part.trim(); const separator = trimmed.indexOf(':');
+                if (separator === -1) return `<p>${escapeHTML(trimmed)}</p>`;
+                const heading = escapeHTML(trimmed.slice(0, separator).trim());
+                const text = trimmed.slice(separator + 1).trim();
+                const body = text.includes(';') ? '<ul>' + text.split(';').filter(Boolean).map(item => `<li>${escapeHTML(item.trim())}</li>`).join('') + '</ul>' : `<p>${escapeHTML(text)}</p>`;
+                return `<section class="description-section"><h4>${heading}</h4>${body}</section>`;
+            }).join('');
+        }
+
+        function escapeHTML(value) { const div = document.createElement('div'); div.textContent = value ?? ''; return div.innerHTML; }
+        function closeJobDetails() { document.getElementById('detailsModal').hidden = true; document.body.classList.remove('modal-open'); }
+        function clearFilters() { document.getElementById('keywordFilter').value = ''; document.getElementById('categoryFilter').value = 'all'; document.getElementById('experienceFilter').value = 'all'; document.getElementById('locationFilter').value = ''; loadJobs(); }
+        async function logout() { await fetchAPI('logout', 'POST'); window.location.href = '../index.html'; }
+    </script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+/target/
+*.class
+/.settings/
+/.project
+/.classpath
+/src/main/webapp/resume/
+/src/main/webapp/profile-pictures/

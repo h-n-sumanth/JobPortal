@@ -1,0 +1,134 @@
+<web-app xmlns="https://jakarta.ee/xml/ns/jakartaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee
+         https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd"
+         version="6.0">
+
+    <servlet>
+        <servlet-name>LoginServlet</servlet-name>
+        <servlet-class>com.jobportal.LoginServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>LoginServlet</servlet-name>
+        <url-pattern>/login</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>RegisterServlet</servlet-name>
+        <servlet-class>com.jobportal.RegisterServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>RegisterServlet</servlet-name>
+        <url-pattern>/register</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>AdminLoginServlet</servlet-name>
+        <servlet-class>com.jobportal.AdminLoginServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AdminLoginServlet</servlet-name>
+        <url-pattern>/adminlogin</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>AddJobServlet</servlet-name>
+        <servlet-class>com.jobportal.AddJobServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AddJobServlet</servlet-name>
+        <url-pattern>/addjob</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ApplyJobServlet</servlet-name>
+        <servlet-class>com.jobportal.ApplyJobServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ApplyJobServlet</servlet-name>
+        <url-pattern>/applyjob</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>CurrentUserServlet</servlet-name>
+        <servlet-class>com.jobportal.CurrentUserServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>CurrentUserServlet</servlet-name>
+        <url-pattern>/currentuser</url-pattern>
+    </servlet-mapping>
+
+
+    <servlet>
+        <servlet-name>DeleteJobServlet</servlet-name>
+        <servlet-class>com.jobportal.DeleteJobServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>DeleteJobServlet</servlet-name>
+        <url-pattern>/deletejob</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>LogoutServlet</servlet-name>
+        <servlet-class>com.jobportal.LogoutServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>LogoutServlet</servlet-name>
+        <url-pattern>/logout</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>UpdateJobServlet</servlet-name>
+        <servlet-class>com.jobportal.UpdateJobServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>UpdateJobServlet</servlet-name>
+        <url-pattern>/updatejob</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ViewApplicantsServlet</servlet-name>
+        <servlet-class>com.jobportal.ViewApplicantsServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ViewApplicantsServlet</servlet-name>
+        <url-pattern>/viewapplicants</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ViewJobsServlet</servlet-name>
+        <servlet-class>com.jobportal.ViewJobsServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ViewJobsServlet</servlet-name>
+        <url-pattern>/viewjobs</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>MyApplicationsServlet</servlet-name>
+        <servlet-class>com.jobportal.MyApplicationsServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>MyApplicationsServlet</servlet-name>
+        <url-pattern>/myapplications</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ProfileServlet</servlet-name>
+        <servlet-class>com.jobportal.ProfileServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ProfileServlet</servlet-name>
+        <url-pattern>/profile</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ResumeServlet</servlet-name>
+        <servlet-class>com.jobportal.ResumeServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ResumeServlet</servlet-name>
+        <url-pattern>/resumes</url-pattern>
+    </servlet-mapping>
+
+</web-app>

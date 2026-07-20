@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexJob | My Applications</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="../js/api.js"></script>
+    <style>
+        .app-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.4rem 1.8rem;
+            margin-bottom: 1rem;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .app-card-info { flex: 1; min-width: 200px; }
+        .app-card-info h3 { color: var(--accent); margin-bottom: 4px; font-size: 1.1rem; }
+        .app-card-info p  { font-size: 0.88rem; color: var(--text-muted); margin: 0; }
+        .app-card-meta { text-align: right; min-width: 140px; }
+        .app-card-meta .salary { color: var(--success); font-weight: 700; font-size: 1rem; }
+        .app-card-meta .resume-link {
+            display: inline-block;
+            margin-top: 8px;
+            font-size: 0.8rem;
+            color: var(--accent);
+            text-decoration: none;
+            padding: 4px 12px;
+            border: 1px solid var(--accent);
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        .app-card-meta .resume-link:hover { background: var(--accent); color: #fff; }
+        .status-chip {
+            display: inline-block;
+            padding: 3px 12px;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            background: rgba(255,255,255,0.08);
+        }
+        .empty-state {
+            text-align: center;
+            padding: 5rem 2rem;
+        }
+        .empty-state .icon { font-size: 4rem; margin-bottom: 1rem; }
+        .empty-state h3 { color: var(--text-muted); font-weight: 400; }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-grid">
+        <aside class="sidebar glass-panel" style="margin: 2rem 0 2rem 2rem;">
+            <h2 style="color: var(--accent); margin-bottom: 2rem;">NexJob</h2>
+            <nav>
+                <a href="dashboard.html">Dashboard</a>
+                <a href="myapplications.html" class="active">My Applications</a>
+                <a href="profile.html">My Profile</a>
+                <a href="#" onclick="logout()">Logout</a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <div>
+                    <h2>My Applications</h2>
+                    <p style="margin:0; font-size:0.9rem;">Track all the jobs you have applied for</p>
+                </div>
+                <div class="glass-panel" style="padding: 10px 20px;">
+                    <span id="userGreeting">Welcome, User</span>
+                </div>
+            </header>
+
+            <div id="appCount" style="margin-bottom:1.2rem; color:var(--text-muted); font-size:0.9rem;"></div>
+            <div id="applicationsContainer"></div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', loadApplications);
+
+        async function loadApplications() {
+            const container = document.getElementById('applicationsContainer');
+            container.innerHTML = '<p>Loading your applications...</p>';
+
+            // Load user info
+            const userRes = await fetchAPI('currentuser');
+            if (userRes.status === 'success') {
+                document.getElementById('userGreeting').innerText = 'Welcome, ' + userRes.name;
+            }
+
+            const res = await fetchAPI('myapplications');
+            if (res.status === 'success') {
+                const apps = res.data;
+                if (apps.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state glass-panel">
+                            <div class="icon">📭</div>
+                            <h3>You haven't applied to any jobs yet!</h3>
+                            <p style="margin-top:1rem;">
+                                <a href="dashboard.html" style="color:var(--accent);">Browse Available Jobs →</a>
+                            </p>
+                        </div>`;
+                    document.getElementById('appCount').innerText = '';
+                    return;
+                }
+
+                document.getElementById('appCount').innerText = `Showing ${apps.length} application${apps.length > 1 ? 's' : ''}`;
+                container.innerHTML = '';
+
+                apps.forEach((app, i) => {
+                    const isOpen = app.status && app.status.toLowerCase() === 'open';
+                    const card = document.createElement('div');
+                    card.className = 'glass-panel app-card animate-fade';
+                    card.style.animationDelay = (i * 0.07) + 's';
+                    card.innerHTML = `
+                        <div style="font-size:2rem; margin-right:0.5rem;">💼</div>
+                        <div class="app-card-info">
+                            <h3>${app.job_title}</h3>
+                            <p>${app.company} &bull; ${app.location}</p>
+                            ${app.applied_on && app.applied_on !== 'N/A' ?
+                              `<p style="margin-top:4px;font-size:0.8rem;">Applied on: ${app.applied_on}</p>` : ''}
+                        </div>
+                        <div class="app-card-meta">
+                            <div class="salary">${app.salary}</div>
+                            <span class="status-chip ${isOpen ? 'text-success' : 'text-danger'}" style="margin-top:6px; display:inline-block;">
+                                ${app.status}
+                            </span>
+                            ${app.resume ? `<br><a class="resume-link" href="../resume/${encodeURIComponent(app.resume)}" target="_blank">Resume</a>` : ''}
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            } else if (res.status === 'error' && res.message && res.message.includes('not logged')) {
+                window.location.href = '../index.html';
+            } else {
+                container.innerHTML = `<p class="text-danger">Error: ${res.message}</p>`;
+            }
+        }
+
+        async function logout() {
+            await fetchAPI('logout', 'POST');
+            window.location.href = '../index.html';
+        }
+    </script>
+</body>
+</html>
