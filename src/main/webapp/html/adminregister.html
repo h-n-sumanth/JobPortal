@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexJob | Register Company Admin Account</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="../js/api.js"></script>
+    <style>
+        body { display: grid; place-items: center; min-height: 100vh; padding: 1.5rem; }
+        .auth-card { width: min(480px, 100%); padding: 2.5rem; border-color: rgba(239, 68, 68, 0.4); }
+    </style>
+</head>
+<body>
+    <div class="glass-panel auth-card animate-fade">
+        <div style="text-align:center; margin-bottom:1.8rem;">
+            <h2 style="color:var(--danger); margin-bottom:0.4rem;">Register Company Admin Account</h2>
+            <p style="font-size:0.9rem;">Register as a Company Representative to post job openings and review applicants.</p>
+        </div>
+
+        <form id="adminRegisterForm">
+            <label>Admin Full Name *
+                <input type="text" id="name" placeholder="Sarah Jenkins" required>
+            </label>
+            <label>Company Name *
+                <input type="text" id="companyName" placeholder="e.g. Infosys, Wipro, Razorpay, TechCorp" required>
+            </label>
+            <label>Work Email Address *
+                <input type="email" id="email" placeholder="sarah@company.com" required>
+            </label>
+            <label>Password *
+                <input type="password" id="password" placeholder="Choose a strong password" required>
+            </label>
+            <button class="btn btn-danger" type="submit" style="width:100%; margin-top:0.5rem;">Register Company Account</button>
+        </form>
+
+        <div style="margin-top:1.5rem; text-align:center; border-top:1px solid var(--border); padding-top:1rem;">
+            <p style="font-size:0.88rem;">Already registered your company? <a href="adminlogin.html" style="color:var(--danger); font-weight:700;">Sign in here →</a></p>
+            <p style="font-size:0.85rem; margin-top:0.5rem;"><a href="../index.html" style="color:var(--text-muted);">← Back to Job Portal Home</a></p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('adminRegisterForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            btn.disabled = true; btn.innerText = 'Registering company account...';
+
+            const payload = {
+                name: document.getElementById('name').value,
+                companyName: document.getElementById('companyName').value,
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value
+            };
+
+            const res = await fetchAPI('adminregister', 'POST', payload);
+            btn.disabled = false; btn.innerText = 'Register Company Account';
+
+            if (res.status === 'success') {
+                showMessage('Admin registered successfully!');
+                setTimeout(() => window.location.href = 'adminpanel.html', 800);
+            } else {
+                showMessage(res.message || 'Registration failed', true);
+            }
+        });
+    </script>
+</body>
+</html>

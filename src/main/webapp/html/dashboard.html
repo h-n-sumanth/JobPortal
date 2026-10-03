@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NexJob | Jobs</title>
+    <title>NexJob | Job Discovery & Search</title>
     <link rel="stylesheet" href="../css/style.css">
     <script src="../js/api.js"></script>
 </head>
@@ -21,42 +21,102 @@
         <main class="main-content">
             <header class="page-header">
                 <div>
-                    <p class="eyebrow">Career discovery</p>
-                    <h2 style="margin-bottom:4px;">Find your next opportunity</h2>
-                    <p style="margin:0;font-size:0.9rem;">Choose filters, then click a job to view its complete description and apply.</p>
+                    <p class="eyebrow">Career Discovery Portal</p>
+                    <h2 style="margin-bottom:4px;">Find Your Next Opportunity</h2>
+                    <p style="margin:0;font-size:0.9rem;">Filter by role, experience, work mode, or skills and click any job for complete details.</p>
                 </div>
-                <div class="user-chip glass-panel"><span id="userGreeting">Welcome</span></div>
+                <div class="header-actions">
+                    <button id="notifBellBtn" class="notif-bell-btn" type="button" aria-label="Notifications">
+                        🔔 <span id="notifBadge" class="notif-badge" hidden>0</span>
+                    </button>
+                    <div id="notifDrawer" class="notif-drawer glass-panel" hidden></div>
+                    <div class="user-chip glass-panel"><span id="userGreeting">Welcome</span></div>
+                </div>
             </header>
 
-            <section class="glass-panel filter-panel" aria-label="Job filters">
-                <div class="filter-heading"><strong>Refine jobs</strong><button type="button" class="text-button" onclick="clearFilters()">Clear filters</button></div>
-                <div class="filter-grid">
-                    <label>Keyword<input id="keywordFilter" type="search" placeholder="Java, Selenium, analyst..."></label>
-                    <label>Category
-                        <select id="categoryFilter">
-                            <option value="all">All categories</option>
-                            <option>Software Development</option><option>QA &amp; Testing</option><option>Data &amp; AI</option>
-                            <option>Cloud &amp; DevOps</option><option>Design &amp; Product</option><option>Business &amp; Operations</option>
-                            <option>Mobile Development</option><option>Enterprise Systems</option>
+            <section class="glass-panel filter-panel" aria-label="Advanced Job filters">
+                <div class="filter-heading">
+                    <div>
+                        <strong style="font-size:1.1rem; color:#fff;">Advanced Job Search Filters</strong>
+                        <p style="font-size:0.82rem; margin:0;">Filter by 8 distinct dimensions to find exact matching roles.</p>
+                    </div>
+                    <button type="button" class="btn btn-outline" onclick="clearFilters()" style="padding:6px 14px; font-size:0.85rem;">Clear All Filters</button>
+                </div>
+
+                <div class="filter-grid-8">
+                    <label>Job Role
+                        <input id="roleFilter" type="text" placeholder="e.g. Java Developer, QA..." list="roleOptions">
+                        <datalist id="roleOptions">
+                            <option value="Java Developer"></option>
+                            <option value="QA Engineer"></option>
+                            <option value="Full Stack Developer"></option>
+                            <option value="Frontend Developer"></option>
+                            <option value="Backend Developer"></option>
+                            <option value="Data Scientist"></option>
+                            <option value="DevOps Engineer"></option>
+                        </datalist>
+                    </label>
+
+                    <label>Experience Level
+                        <select id="experienceFilter">
+                            <option value="all">Any Experience</option>
+                            <option value="Fresher">Fresher</option>
+                            <option value="0-1 Years">0–1 Years</option>
+                            <option value="1-3 Years">1–3 Years</option>
+                            <option value="3+ Years">3+ Years</option>
                         </select>
                     </label>
-                    <label>Experience
-                        <select id="experienceFilter"><option value="all">Any experience</option><option>0-2 years</option><option>3-5 years</option><option>6-8 years</option><option>9+ years</option></select>
+
+                    <label>Employment Type
+                        <select id="jobTypeFilter">
+                            <option value="all">All Types</option>
+                            <option value="Full-Time">Full-Time</option>
+                            <option value="Internship">Internship</option>
+                            <option value="Contract">Contract</option>
+                        </select>
                     </label>
-                    <label>Location<input id="locationFilter" type="search" placeholder="Bengaluru, Pune..."></label>
+
+                    <label>Work Mode
+                        <select id="workModeFilter">
+                            <option value="all">All Modes</option>
+                            <option value="Remote">Remote</option>
+                            <option value="Hybrid">Hybrid</option>
+                            <option value="On-site">On-site</option>
+                        </select>
+                    </label>
+
+                    <label>Location
+                        <input id="locationFilter" type="text" placeholder="Bengaluru, Pune, Chennai...">
+                    </label>
+
+                    <label>Company
+                        <input id="companyFilter" type="text" placeholder="Infosys, TCS, Wipro...">
+                    </label>
+
+                    <label>Skills Required
+                        <input id="skillsFilter" type="text" placeholder="Java, React, Selenium, SQL...">
+                    </label>
+
+                    <label>Salary Range / Search
+                        <input id="keywordFilter" type="text" placeholder="10-15 LPA, microservices...">
+                    </label>
                 </div>
-                <button class="btn btn-accent" type="button" onclick="loadJobs()">Search jobs</button>
+
+                <div class="filter-actions">
+                    <button class="btn btn-accent" type="button" onclick="loadJobs()" style="flex:1;">Search Open Positions</button>
+                </div>
             </section>
 
-            <div class="results-bar"><span id="resultCount">Loading jobs...</span></div>
+            <div class="results-bar"><span id="resultCount">Loading job opportunities...</span></div>
             <div id="jobsContainer" class="jobs-grid"></div>
         </main>
     </div>
 
+    <!-- Job Description Modal -->
     <div id="detailsModal" class="modal-shell" role="dialog" aria-modal="true" aria-labelledby="jobDetailsTitle" hidden>
         <div class="glass-panel job-details-modal">
             <button class="modal-close" type="button" onclick="closeJobDetails()" aria-label="Close job details">&times;</button>
-            <div id="jobDetailsContent"></div>
+            <div id="jobDetailsContent" style="flex:1; overflow-y:auto;"></div>
             <div class="apply-box" id="applyBox"></div>
         </div>
     </div>
@@ -67,54 +127,74 @@
         let activeJob = null;
 
         document.addEventListener('DOMContentLoaded', initialiseDashboard);
-        ['keywordFilter', 'locationFilter'].forEach(id => document.getElementById(id).addEventListener('keydown', event => {
-            if (event.key === 'Enter') loadJobs();
-        }));
+
+        ['roleFilter', 'locationFilter', 'companyFilter', 'skillsFilter', 'keywordFilter'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('keydown', event => { if (event.key === 'Enter') loadJobs(); });
+        });
 
         async function initialiseDashboard() {
             const userRes = await fetchAPI('currentuser');
             if (userRes.status !== 'success') { window.location.href = 'login.html'; return; }
             document.getElementById('userGreeting').innerText = 'Welcome, ' + userRes.name;
+            
+            initNotificationSystem();
             await Promise.all([loadJobs(), loadResumes()]);
         }
 
-        function filters() {
+        function getFilterParams() {
             const values = {
-                keyword: document.getElementById('keywordFilter').value.trim(),
-                category: document.getElementById('categoryFilter').value,
+                jobRole: document.getElementById('roleFilter').value.trim(),
                 experience: document.getElementById('experienceFilter').value,
-                location: document.getElementById('locationFilter').value.trim()
+                jobType: document.getElementById('jobTypeFilter').value,
+                workMode: document.getElementById('workModeFilter').value,
+                location: document.getElementById('locationFilter').value.trim(),
+                company: document.getElementById('companyFilter').value.trim(),
+                skills: document.getElementById('skillsFilter').value.trim(),
+                keyword: document.getElementById('keywordFilter').value.trim()
             };
-            return new URLSearchParams(Object.entries(values).filter(([, value]) => value && value !== 'all')).toString();
+            return new URLSearchParams(Object.entries(values).filter(([, val]) => val && val !== 'all')).toString();
         }
 
         async function loadJobs() {
             const container = document.getElementById('jobsContainer');
-            container.innerHTML = '<p>Loading matching jobs...</p>';
-            const query = filters();
+            container.innerHTML = '<p style="grid-column:1/-1;">Loading matching job postings...</p>';
+            const query = getFilterParams();
             const res = await fetchAPI('viewjobs' + (query ? '?' + query : ''));
+
             if (res.status !== 'success') {
-                container.innerHTML = '<p class="text-danger">' + escapeHTML(res.message || 'Unable to load jobs') + '</p>';
+                container.innerHTML = '<p class="text-danger" style="grid-column:1/-1;">' + escapeHTML(res.message || 'Unable to load jobs') + '</p>';
                 return;
             }
-            allJobs = res.data;
-            document.getElementById('resultCount').innerText = `${allJobs.length} job${allJobs.length === 1 ? '' : 's'} found`;
+            allJobs = res.data || [];
+            document.getElementById('resultCount').innerText = `${allJobs.length} job${allJobs.length === 1 ? '' : 's'} available`;
+
             if (!allJobs.length) {
-                container.innerHTML = '<div class="empty-state glass-panel"><div class="icon">⌕</div><h3>No matching jobs yet</h3><p>Try a broader keyword or clear one of the filters.</p></div>';
+                container.innerHTML = '<div class="empty-state glass-panel" style="grid-column:1/-1; text-align:center; padding:4rem 2rem;"><div style="font-size:3rem; margin-bottom:1rem;">🔍</div><h3>No matching jobs found</h3><p>Try clearing filters or broadening your search keywords.</p></div>';
                 return;
             }
-            container.innerHTML = allJobs.map((job, index) => jobCard(job, index)).join('');
+            container.innerHTML = allJobs.map((job, index) => jobCardHTML(job, index)).join('');
         }
 
-        function jobCard(job, index) {
+        function jobCardHTML(job, index) {
             const open = String(job.status).toLowerCase() === 'open';
-            return `<article class="glass-panel job-card animate-fade" style="animation-delay:${index * 0.04}s">
-                <div class="job-card-top"><span class="job-category">${escapeHTML(job.category || 'General')}</span><span class="badge ${open ? 'text-success' : 'text-danger'}">${escapeHTML(job.status)}</span></div>
+            const skillsList = job.skills ? job.skills.split(',').map(s => s.trim()).filter(Boolean).slice(0, 3) : [];
+
+            return `<article class="glass-panel job-card">
+                <div class="job-card-top">
+                    <span class="job-category">${escapeHTML(job.category || 'General')}</span>
+                    <span class="status-chip ${open ? 'status-submitted' : 'status-rejected'}">${escapeHTML(job.status)}</span>
+                </div>
                 <h3>${escapeHTML(job.title)}</h3>
-                <h4>${escapeHTML(job.company)} <span>&bull;</span> ${escapeHTML(job.location)}</h4>
+                <h4>${escapeHTML(job.company)} &bull; ${escapeHTML(job.location)}</h4>
                 <p class="salary">${escapeHTML(job.salary)}</p>
-                <div class="job-meta"><span>${escapeHTML(job.experience || 'Experience not specified')}</span><span>${escapeHTML(job.jobType || 'Full-Time')}</span></div>
-                <button type="button" class="btn btn-outline" onclick="openJobDetails(${Number(job.id)})">View job description</button>
+                <div class="job-tags">
+                    <span class="job-tag">${escapeHTML(job.experience || 'Fresher')}</span>
+                    <span class="job-tag">${escapeHTML(job.jobType || 'Full-Time')}</span>
+                    <span class="job-tag">${escapeHTML(job.workMode || 'On-site')}</span>
+                    ${skillsList.map(s => `<span class="job-tag" style="border-color:rgba(14,165,233,0.3); color:#7dd3fc;">${escapeHTML(s)}</span>`).join('')}
+                </div>
+                <button type="button" class="btn-jd" onclick="openJobDetails(${Number(job.id)})">Click Here for Job Description (JD)</button>
             </article>`;
         }
 
@@ -127,48 +207,104 @@
             activeJob = allJobs.find(job => Number(job.id) === Number(id));
             if (!activeJob) return;
             const open = String(activeJob.status).toLowerCase() === 'open';
+
+            const skillsBadges = activeJob.skills ? activeJob.skills.split(',').map(s => `<span class="job-tag" style="background:rgba(14,165,233,0.15); color:#38bdf8; border:1px solid rgba(14,165,233,0.4); padding:4px 12px; font-size:0.82rem;">${escapeHTML(s.trim())}</span>`).join(' ') : '<span>Not specified</span>';
+
             document.getElementById('jobDetailsContent').innerHTML = `
-                <p class="eyebrow">${escapeHTML(activeJob.category || 'Job opportunity')}</p>
-                <h2 id="jobDetailsTitle">${escapeHTML(activeJob.title)}</h2>
-                <p class="company-line">${escapeHTML(activeJob.company)} &bull; ${escapeHTML(activeJob.location)}</p>
-                <div class="details-meta"><span class="salary">${escapeHTML(activeJob.salary)}</span><span>${escapeHTML(activeJob.experience || '')}</span><span>${escapeHTML(activeJob.jobType || '')}</span></div>
-                <div class="description-content">${descriptionHTML(activeJob.description)}</div>`;
-            document.getElementById('applyBox').innerHTML = applicationHTML(open);
+                <div style="margin-bottom:1rem;">
+                    <p class="eyebrow">${escapeHTML(activeJob.category || 'Job Opportunity')}</p>
+                    <h2 id="jobDetailsTitle" style="font-size:1.6rem; margin-bottom:4px;">${escapeHTML(activeJob.title)}</h2>
+                    <p style="font-size:1.05rem; color:#fff; font-weight:600; margin-bottom:8px;">${escapeHTML(activeJob.company)} &bull; ${escapeHTML(activeJob.location)}</p>
+                    <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
+                        <span class="salary" style="font-size:1.1rem; margin:0;">${escapeHTML(activeJob.salary)}</span>
+                        <span class="job-tag">${escapeHTML(activeJob.experience || 'Fresher')}</span>
+                        <span class="job-tag">${escapeHTML(activeJob.jobType || 'Full-Time')}</span>
+                        <span class="job-tag">${escapeHTML(activeJob.workMode || 'On-site')}</span>
+                    </div>
+                </div>
+
+                <div class="jd-sections">
+                    <div class="jd-block">
+                        <h4>📄 Complete Job Description</h4>
+                        <div>${formatDescription(activeJob.description)}</div>
+                    </div>
+                    <div class="jd-block">
+                        <h4>🏢 Company Details</h4>
+                        <p><strong>Company:</strong> ${escapeHTML(activeJob.company)}</p>
+                        <p><strong>Work Location:</strong> ${escapeHTML(activeJob.location)}</p>
+                        <p><strong>Work Mode:</strong> ${escapeHTML(activeJob.workMode || 'On-site')}</p>
+                    </div>
+                    <div class="jd-block">
+                        <h4>🎓 Eligibility Criteria & Experience</h4>
+                        <p><strong>Experience Required:</strong> ${escapeHTML(activeJob.experience || 'Not specified')}</p>
+                        <p><strong>Employment Type:</strong> ${escapeHTML(activeJob.jobType || 'Full-Time')}</p>
+                    </div>
+                    <div class="jd-block">
+                        <h4>🛠 Required Skills</h4>
+                        <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:6px;">${skillsBadges}</div>
+                    </div>
+                    <div class="jd-block">
+                        <h4>💰 Salary & Location</h4>
+                        <p><strong>Offered Salary:</strong> <span class="text-success">${escapeHTML(activeJob.salary)}</span></p>
+                        <p><strong>Location:</strong> ${escapeHTML(activeJob.location)}</p>
+                    </div>
+                </div>`;
+
+            document.getElementById('applyBox').innerHTML = applicationBoxHTML(open);
             document.getElementById('detailsModal').hidden = false;
             document.body.classList.add('modal-open');
         }
 
-        function applicationHTML(open) {
-            if (!open) return '<p class="text-danger">This position is currently closed.</p>';
-            if (!savedResumes.length) return '<h3>Ready to apply?</h3><p>Add a resume to your profile once, then reuse it for every application.</p><a class="btn btn-accent" href="profile.html">Add a resume in My Profile</a>';
-            const options = savedResumes.map(resume => `<option value="${Number(resume.id)}">${escapeHTML(resume.fileName)}</option>`).join('');
-            return `<h3>Apply with a saved resume</h3><p>Choose one of your ${savedResumes.length} saved resumes. You can manage up to four from your profile.</p>
-                <div class="apply-row"><select id="resumeSelect" aria-label="Choose resume">${options}</select><button type="button" class="btn btn-accent" onclick="submitApplication()">Apply now</button></div>
-                <a class="small-link" href="profile.html">Manage my resumes</a>`;
+        function applicationBoxHTML(open) {
+            if (!open) return '<p class="text-danger" style="font-weight:700;">This position is currently closed for new applications.</p>';
+            if (!savedResumes.length) return `
+                <h3>Apply for this Position</h3>
+                <p>You haven't uploaded any resumes yet. Upload up to 4 resumes with custom names in your profile to apply in 1 click!</p>
+                <a class="btn btn-accent" href="profile.html">Go to My Profile & Add Resume</a>`;
+
+            const options = savedResumes.map(r => `<option value="${Number(r.id)}">${escapeHTML(r.customName)} (${escapeHTML(r.fileName)})</option>`).join('');
+            return `
+                <h3>Apply with Saved Resume</h3>
+                <p>Select one of your ${savedResumes.length} saved resumes to submit your application instantly:</p>
+                <div class="apply-row">
+                    <select id="resumeSelect" aria-label="Select resume">${options}</select>
+                    <button type="button" class="btn btn-accent" onclick="submitApplication()">Apply Now</button>
+                </div>
+                <a style="display:inline-block; color:var(--accent); font-size:0.85rem; margin-top:8px;" href="profile.html">Manage Resumes in Profile →</a>`;
         }
 
         async function submitApplication() {
-            const resume = document.getElementById('resumeSelect');
-            const response = await fetchAPI('applyjob', 'POST', { jobId: activeJob.id, resumeId: resume.value });
-            if (response.status === 'success') { showMessage(response.message); closeJobDetails(); }
-            else showMessage(response.message || 'Unable to apply', true);
+            const resumeSelect = document.getElementById('resumeSelect');
+            if (!resumeSelect || !resumeSelect.value) return;
+            const res = await fetchAPI('applyjob', 'POST', { jobId: activeJob.id, resumeId: resumeSelect.value });
+            if (res.status === 'success') {
+                showMessage(res.message);
+                closeJobDetails();
+                refreshNotifications();
+            } else {
+                showMessage(res.message || 'Unable to apply', true);
+            }
         }
 
-        function descriptionHTML(raw) {
-            if (!raw) return '<p>No description provided.</p>';
+        function formatDescription(raw) {
+            if (!raw) return '<p>No detailed description provided.</p>';
             return raw.split('|').map(part => {
-                const trimmed = part.trim(); const separator = trimmed.indexOf(':');
-                if (separator === -1) return `<p>${escapeHTML(trimmed)}</p>`;
-                const heading = escapeHTML(trimmed.slice(0, separator).trim());
-                const text = trimmed.slice(separator + 1).trim();
+                const trimmed = part.trim();
+                const sep = trimmed.indexOf(':');
+                if (sep === -1) return `<p>${escapeHTML(trimmed)}</p>`;
+                const heading = escapeHTML(trimmed.slice(0, sep).trim());
+                const text = trimmed.slice(sep + 1).trim();
                 const body = text.includes(';') ? '<ul>' + text.split(';').filter(Boolean).map(item => `<li>${escapeHTML(item.trim())}</li>`).join('') + '</ul>' : `<p>${escapeHTML(text)}</p>`;
-                return `<section class="description-section"><h4>${heading}</h4>${body}</section>`;
+                return `<div style="margin-bottom:0.75rem;"><strong style="color:var(--accent); font-size:0.92rem;">${heading}:</strong> ${body}</div>`;
             }).join('');
         }
 
-        function escapeHTML(value) { const div = document.createElement('div'); div.textContent = value ?? ''; return div.innerHTML; }
         function closeJobDetails() { document.getElementById('detailsModal').hidden = true; document.body.classList.remove('modal-open'); }
-        function clearFilters() { document.getElementById('keywordFilter').value = ''; document.getElementById('categoryFilter').value = 'all'; document.getElementById('experienceFilter').value = 'all'; document.getElementById('locationFilter').value = ''; loadJobs(); }
+        function clearFilters() {
+            ['roleFilter', 'locationFilter', 'companyFilter', 'skillsFilter', 'keywordFilter'].forEach(id => document.getElementById(id).value = '');
+            ['experienceFilter', 'jobTypeFilter', 'workModeFilter'].forEach(id => document.getElementById(id).value = 'all');
+            loadJobs();
+        }
         async function logout() { await fetchAPI('logout', 'POST'); window.location.href = '../index.html'; }
     </script>
 </body>

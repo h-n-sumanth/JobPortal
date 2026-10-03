@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NexJob | My Profile</title>
+    <title>NexJob | My Candidate Profile</title>
     <link rel="stylesheet" href="../css/style.css">
     <script src="../js/api.js"></script>
 </head>
@@ -20,35 +20,111 @@
         </aside>
         <main class="main-content">
             <header class="page-header">
-                <div><p class="eyebrow">Candidate profile</p><h2 style="margin-bottom:4px;">My Profile</h2><p style="margin:0;font-size:.9rem;">Keep your details and resume library ready for quick applications.</p></div>
+                <div>
+                    <p class="eyebrow">User Management</p>
+                    <h2 style="margin-bottom:4px;">User Profile & Resumes</h2>
+                    <p style="margin:0;font-size:.9rem;">Keep your personal details up-to-date and manage your resume library.</p>
+                </div>
+                <div class="header-actions">
+                    <button id="notifBellBtn" class="notif-bell-btn" type="button" aria-label="Notifications">
+                        🔔 <span id="notifBadge" class="notif-badge" hidden>0</span>
+                    </button>
+                    <div id="notifDrawer" class="notif-drawer glass-panel" hidden></div>
+                </div>
             </header>
 
             <div class="profile-layout">
+                <!-- Personal Profile Form -->
                 <section class="glass-panel profile-card">
-                    <h3>Basic details</h3>
-                    <form id="profileForm">
+                    <h3>Candidate Personal Information</h3>
+                    <form id="profileForm" style="margin-top:1rem;">
                         <div class="profile-picture-row">
                             <div id="avatarFallback" class="avatar-fallback">U</div>
                             <img id="profilePreview" class="profile-preview" alt="Profile preview" hidden>
-                            <label class="btn btn-outline upload-photo-label">Change photo<input id="profilePicture" type="file" name="profilePicture" accept="image/png,image/jpeg,image/webp" hidden></label>
+                            <label class="btn btn-outline upload-photo-label" style="cursor:pointer;">
+                                Upload Photo
+                                <input id="profilePicture" type="file" name="profilePicture" accept="image/png,image/jpeg,image/webp" hidden>
+                            </label>
                         </div>
-                        <label>Full name<input id="name" name="name" type="text" required></label>
-                        <label>Email address<input id="email" type="email" disabled></label>
-                        <div class="form-two-columns">
-                            <label>Gender<select id="gender" name="gender"><option value="">Prefer not to say</option><option>Female</option><option>Male</option><option>Non-binary</option><option>Other</option></select></label>
-                            <label>Phone number<input id="phone" name="phone" type="tel" placeholder="+91 98765 43210" required></label>
+
+                        <div class="form-grid-2">
+                            <label>Full Name *
+                                <input id="name" name="name" type="text" placeholder="John Doe" required>
+                            </label>
+                            <label>Email Address
+                                <input id="email" type="email" disabled style="opacity:0.7; cursor:not-allowed;">
+                            </label>
                         </div>
-                        <button class="btn btn-accent" type="submit">Save profile</button>
+
+                        <div class="form-grid-2">
+                            <label>Gender
+                                <select id="gender" name="gender">
+                                    <option value="">Select Gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Non-binary">Non-binary</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </label>
+                            <label>Date of Birth
+                                <input id="dob" name="dob" type="date">
+                            </label>
+                        </div>
+
+                        <div class="form-grid-2">
+                            <label>Phone Number *
+                                <input id="phone" name="phone" type="tel" placeholder="+91 98765 43210" required>
+                            </label>
+                            <label>Preferred Job Role
+                                <input id="preferredRole" name="preferredRole" type="text" placeholder="e.g. Java Developer, Full Stack...">
+                            </label>
+                        </div>
+
+                        <label>Current Address
+                            <textarea id="address" name="address" rows="2" placeholder="Enter street address, city, state, pincode..."></textarea>
+                        </label>
+
+                        <label>Technical Skills
+                            <textarea id="skills" name="skills" rows="2" placeholder="e.g. Java, Spring Boot, React, SQL, Selenium, Git..."></textarea>
+                        </label>
+
+                        <div class="form-grid-2">
+                            <label>Experience Details
+                                <textarea id="experience" name="experience" rows="3" placeholder="e.g. 2 years as Java Developer at Tech Corp..."></textarea>
+                            </label>
+                            <label>Education & Qualifications
+                                <textarea id="education" name="education" rows="3" placeholder="e.g. B.E. in Computer Science (2024)..."></textarea>
+                            </label>
+                        </div>
+
+                        <button class="btn btn-accent" type="submit" style="width:100%; margin-top:1rem;">Update & Save Profile</button>
                     </form>
                 </section>
 
+                <!-- Resume Library Card -->
                 <section class="glass-panel resumes-card">
-                    <div class="section-heading"><div><h3>Resume library</h3><p>Save up to four PDF or Word resumes. Choose one when you apply.</p></div><span id="resumeCount" class="badge">0 / 4</span></div>
-                    <form id="resumeForm" class="resume-upload-form">
-                        <input id="resumeFile" type="file" name="resume" accept=".pdf,.doc,.docx" required>
-                        <button id="uploadResumeButton" class="btn btn-outline" type="submit">Add resume</button>
-                    </form>
-                    <div id="resumeList" class="resume-list"><p>Loading resumes...</p></div>
+                    <div class="section-heading">
+                        <div>
+                            <h3>Resume Management</h3>
+                            <p style="font-size:0.85rem;">Upload up to 4 resumes with custom labels (e.g. <em>Java Developer</em>, <em>QA Resume</em>). Choose one when applying.</p>
+                        </div>
+                        <span id="resumeCount" class="badge" style="font-size:0.85rem; padding:6px 12px;">0 / 4</span>
+                    </div>
+
+                    <div class="resume-upload-box">
+                        <form id="resumeForm" class="resume-upload-form">
+                            <label style="display:block; font-size:0.82rem; font-weight:600; color:var(--text-muted);">Custom Resume Label
+                                <input id="customName" type="text" name="customName" placeholder="e.g. Java Developer Resume, QA Resume" required>
+                            </label>
+                            <label style="display:block; font-size:0.82rem; font-weight:600; color:var(--text-muted);">Select PDF/Word File
+                                <input id="resumeFile" type="file" name="resume" accept=".pdf,.doc,.docx" required>
+                            </label>
+                            <button id="uploadResumeButton" class="btn btn-accent" type="submit">Upload Resume to Library</button>
+                        </form>
+                    </div>
+
+                    <h4 style="font-size:0.95rem; color:var(--accent); margin-bottom:0.75rem;">Your Uploaded Resumes</h4>
+                    <div id="resumeList" class="resume-list"><p>Loading saved resumes...</p></div>
                 </section>
             </div>
         </main>
@@ -56,68 +132,138 @@
 
     <script>
         let resumes = [];
+
         document.addEventListener('DOMContentLoaded', initialiseProfile);
         document.getElementById('profilePicture').addEventListener('change', previewPhoto);
         document.getElementById('profileForm').addEventListener('submit', saveProfile);
         document.getElementById('resumeForm').addEventListener('submit', uploadResume);
 
         async function initialiseProfile() {
-            const [profile, resumeResponse] = await Promise.all([fetchAPI('profile'), fetchAPI('resumes')]);
-            if (profile.status !== 'success') { window.location.href = 'login.html'; return; }
+            initNotificationSystem();
+            const [profile, resumeRes] = await Promise.all([fetchAPI('profile'), fetchAPI('resumes')]);
+            
+            if (profile.status !== 'success') {
+                if (profile.message && (profile.message.includes('not logged') || profile.message.includes('not found'))) {
+                    window.location.href = 'login.html';
+                } else {
+                    showMessage(profile.message || 'Unable to load profile. Please run upgrade_database.sql in MySQL.', true);
+                }
+                return;
+            }
+
             document.getElementById('name').value = profile.name || '';
             document.getElementById('email').value = profile.email || '';
             document.getElementById('gender').value = profile.gender || '';
             document.getElementById('phone').value = profile.phone || '';
+            document.getElementById('dob').value = profile.dob || '';
+            document.getElementById('address').value = profile.address || '';
+            document.getElementById('skills').value = profile.skills || '';
+            document.getElementById('experience').value = profile.experience || '';
+            document.getElementById('education').value = profile.education || '';
+            document.getElementById('preferredRole').value = profile.preferredRole || '';
+
             setAvatar(profile.name, profile.profilePicture);
-            if (resumeResponse.status === 'success') { resumes = resumeResponse.data; renderResumes(); }
+
+            if (resumeRes.status === 'success') {
+                resumes = resumeRes.data || [];
+                renderResumes();
+            }
         }
 
         function setAvatar(name, file) {
-            const fallback = document.getElementById('avatarFallback'); const image = document.getElementById('profilePreview');
+            const fallback = document.getElementById('avatarFallback');
+            const image = document.getElementById('profilePreview');
             fallback.innerText = (name || 'U').trim().charAt(0).toUpperCase();
+
             if (!file) return;
-            image.src = '../profile-pictures/' + encodeURIComponent(file); image.hidden = false; fallback.hidden = true;
+            image.src = '../profile-pictures/' + encodeURIComponent(file);
+            image.hidden = false;
+            fallback.hidden = true;
         }
 
         function previewPhoto() {
-            const file = this.files[0]; if (!file) return;
+            const file = this.files[0];
+            if (!file) return;
             const image = document.getElementById('profilePreview');
-            image.src = URL.createObjectURL(file); image.hidden = false; document.getElementById('avatarFallback').hidden = true;
+            image.src = URL.createObjectURL(file);
+            image.hidden = false;
+            document.getElementById('avatarFallback').hidden = true;
         }
 
         async function saveProfile(event) {
             event.preventDefault();
-            const button = event.target.querySelector('button[type="submit"]'); button.disabled = true; button.innerText = 'Saving...';
+            const button = event.target.querySelector('button[type="submit"]');
+            button.disabled = true; button.innerText = 'Saving profile...';
+
             const body = new FormData(event.target);
             const response = await fetchAPI('profile', 'POST', body);
-            button.disabled = false; button.innerText = 'Save profile';
+
+            button.disabled = false; button.innerText = 'Update & Save Profile';
             showMessage(response.message || 'Profile saved', response.status !== 'success');
         }
 
         async function uploadResume(event) {
             event.preventDefault();
-            const button = document.getElementById('uploadResumeButton'); button.disabled = true; button.innerText = 'Uploading...';
+            const button = document.getElementById('uploadResumeButton');
+            button.disabled = true; button.innerText = 'Uploading...';
+
             const response = await fetchAPI('resumes', 'POST', new FormData(event.target));
-            button.disabled = false; button.innerText = 'Add resume';
-            if (response.status !== 'success') { showMessage(response.message || 'Unable to add resume', true); return; }
-            document.getElementById('resumeFile').value = ''; showMessage(response.message); await refreshResumes();
+            button.disabled = false; button.innerText = 'Upload Resume to Library';
+
+            if (response.status !== 'success') {
+                showMessage(response.message || 'Unable to add resume', true);
+                return;
+            }
+            document.getElementById('customName').value = '';
+            document.getElementById('resumeFile').value = '';
+            showMessage(response.message);
+            await refreshResumes();
         }
 
         async function removeResume(id) {
+            if (!confirm('Are you sure you want to delete this resume from your library?')) return;
             const response = await fetchAPI('resumes', 'POST', { action: 'delete', id });
-            if (response.status === 'success') { showMessage(response.message); await refreshResumes(); }
-            else showMessage(response.message || 'Unable to remove resume', true);
+            if (response.status === 'success') {
+                showMessage(response.message);
+                await refreshResumes();
+            } else {
+                showMessage(response.message || 'Unable to remove resume', true);
+            }
         }
 
-        async function refreshResumes() { const response = await fetchAPI('resumes'); if (response.status === 'success') { resumes = response.data; renderResumes(); } }
+        async function refreshResumes() {
+            const response = await fetchAPI('resumes');
+            if (response.status === 'success') {
+                resumes = response.data || [];
+                renderResumes();
+            }
+        }
+
         function renderResumes() {
             document.getElementById('resumeCount').innerText = `${resumes.length} / 4`;
             document.getElementById('uploadResumeButton').disabled = resumes.length >= 4;
+
             const list = document.getElementById('resumeList');
-            if (!resumes.length) { list.innerHTML = '<p class="resume-empty">No saved resumes yet. Upload your primary resume to make applying faster.</p>'; return; }
-            list.innerHTML = resumes.map((resume, index) => `<div class="resume-item"><div class="resume-icon">${index + 1}</div><div><strong>${escapeHTML(resume.fileName)}</strong><p>Saved resume ${index + 1}</p></div><div class="resume-actions"><a href="../resume/${encodeURIComponent(resume.storedName)}" target="_blank">View</a><button type="button" onclick="removeResume(${Number(resume.id)})">Remove</button></div></div>`).join('');
+            if (!resumes.length) {
+                list.innerHTML = '<p class="resume-empty">No saved resumes yet. Upload a resume above to make job applications faster.</p>';
+                return;
+            }
+
+            list.innerHTML = resumes.map((resume, index) => `
+                <div class="resume-item">
+                    <div class="resume-icon">#${index + 1}</div>
+                    <div>
+                        <strong>${escapeHTML(resume.customName || 'Resume')}</strong>
+                        <p>${escapeHTML(resume.fileName)} &bull; ${escapeHTML(resume.createdAt || '')}</p>
+                    </div>
+                    <div class="resume-actions">
+                        <a class="btn btn-outline" href="../resume/${encodeURIComponent(resume.storedName)}" target="_blank" style="padding:4px 10px; font-size:0.8rem;">View File</a>
+                        <button type="button" class="btn btn-danger" onclick="removeResume(${Number(resume.id)})" style="padding:4px 10px; font-size:0.8rem;">Delete</button>
+                    </div>
+                </div>
+            `).join('');
         }
-        function escapeHTML(value) { const div = document.createElement('div'); div.textContent = value ?? ''; return div.innerHTML; }
+
         async function logout() { await fetchAPI('logout', 'POST'); window.location.href = '../index.html'; }
     </script>
 </body>

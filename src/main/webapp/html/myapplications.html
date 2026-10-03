@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NexJob | My Applications</title>
+    <title>NexJob | My Job Applications</title>
     <link rel="stylesheet" href="../css/style.css">
     <script src="../js/api.js"></script>
     <style>
@@ -17,46 +17,19 @@
             flex-wrap: wrap;
         }
         .app-card-info { flex: 1; min-width: 200px; }
-        .app-card-info h3 { color: var(--accent); margin-bottom: 4px; font-size: 1.1rem; }
+        .app-card-info h3 { color: var(--accent); margin-bottom: 4px; font-size: 1.15rem; }
         .app-card-info p  { font-size: 0.88rem; color: var(--text-muted); margin: 0; }
-        .app-card-meta { text-align: right; min-width: 140px; }
-        .app-card-meta .salary { color: var(--success); font-weight: 700; font-size: 1rem; }
-        .app-card-meta .resume-link {
-            display: inline-block;
-            margin-top: 8px;
-            font-size: 0.8rem;
-            color: var(--accent);
-            text-decoration: none;
-            padding: 4px 12px;
-            border: 1px solid var(--accent);
-            border-radius: 6px;
-            transition: all 0.2s;
-        }
-        .app-card-meta .resume-link:hover { background: var(--accent); color: #fff; }
-        .status-chip {
-            display: inline-block;
-            padding: 3px 12px;
-            border-radius: 999px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            background: rgba(255,255,255,0.08);
-        }
-        .empty-state {
-            text-align: center;
-            padding: 5rem 2rem;
-        }
-        .empty-state .icon { font-size: 4rem; margin-bottom: 1rem; }
-        .empty-state h3 { color: var(--text-muted); font-weight: 400; }
+        .app-card-meta { text-align: right; min-width: 160px; }
+        .empty-state { text-align: center; padding: 5rem 2rem; }
     </style>
 </head>
 <body>
 
     <div class="dashboard-grid">
-        <aside class="sidebar glass-panel" style="margin: 2rem 0 2rem 2rem;">
+        <aside class="sidebar glass-panel">
             <h2 style="color: var(--accent); margin-bottom: 2rem;">NexJob</h2>
             <nav>
-                <a href="dashboard.html">Dashboard</a>
+                <a href="dashboard.html">Find Jobs</a>
                 <a href="myapplications.html" class="active">My Applications</a>
                 <a href="profile.html">My Profile</a>
                 <a href="#" onclick="logout()">Logout</a>
@@ -64,13 +37,17 @@
         </aside>
 
         <main class="main-content">
-            <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <header class="page-header">
                 <div>
-                    <h2>My Applications</h2>
-                    <p style="margin:0; font-size:0.9rem;">Track all the jobs you have applied for</p>
+                    <h2>My Submitted Applications</h2>
+                    <p style="margin:0; font-size:0.9rem;">Track real-time updates and review status for your job applications.</p>
                 </div>
-                <div class="glass-panel" style="padding: 10px 20px;">
-                    <span id="userGreeting">Welcome, User</span>
+                <div class="header-actions">
+                    <button id="notifBellBtn" class="notif-bell-btn" type="button" aria-label="Notifications">
+                        🔔 <span id="notifBadge" class="notif-badge" hidden>0</span>
+                    </button>
+                    <div id="notifDrawer" class="notif-drawer glass-panel" hidden></div>
+                    <div class="user-chip glass-panel"><span id="userGreeting">Welcome, Candidate</span></div>
                 </div>
             </header>
 
@@ -83,10 +60,10 @@
         document.addEventListener('DOMContentLoaded', loadApplications);
 
         async function loadApplications() {
+            initNotificationSystem();
             const container = document.getElementById('applicationsContainer');
             container.innerHTML = '<p>Loading your applications...</p>';
 
-            // Load user info
             const userRes = await fetchAPI('currentuser');
             if (userRes.status === 'success') {
                 document.getElementById('userGreeting').innerText = 'Welcome, ' + userRes.name;
@@ -94,14 +71,14 @@
 
             const res = await fetchAPI('myapplications');
             if (res.status === 'success') {
-                const apps = res.data;
+                const apps = res.data || [];
                 if (apps.length === 0) {
                     container.innerHTML = `
                         <div class="empty-state glass-panel">
-                            <div class="icon">📭</div>
+                            <div style="font-size:3.5rem; margin-bottom:1rem;">📭</div>
                             <h3>You haven't applied to any jobs yet!</h3>
                             <p style="margin-top:1rem;">
-                                <a href="dashboard.html" style="color:var(--accent);">Browse Available Jobs →</a>
+                                <a href="dashboard.html" class="btn btn-accent">Browse Open Jobs & Apply →</a>
                             </p>
                         </div>`;
                     document.getElementById('appCount').innerText = '';
@@ -112,24 +89,24 @@
                 container.innerHTML = '';
 
                 apps.forEach((app, i) => {
-                    const isOpen = app.status && app.status.toLowerCase() === 'open';
+                    const statusClass = getStatusClass(app.status);
                     const card = document.createElement('div');
                     card.className = 'glass-panel app-card animate-fade';
-                    card.style.animationDelay = (i * 0.07) + 's';
+                    card.style.animationDelay = (i * 0.05) + 's';
                     card.innerHTML = `
-                        <div style="font-size:2rem; margin-right:0.5rem;">💼</div>
+                        <div style="font-size:2.2rem; margin-right:0.5rem;">💼</div>
                         <div class="app-card-info">
-                            <h3>${app.job_title}</h3>
-                            <p>${app.company} &bull; ${app.location}</p>
+                            <h3>${escapeHTML(app.job_title)}</h3>
+                            <p><strong>${escapeHTML(app.company)}</strong> &bull; ${escapeHTML(app.location)}</p>
                             ${app.applied_on && app.applied_on !== 'N/A' ?
-                              `<p style="margin-top:4px;font-size:0.8rem;">Applied on: ${app.applied_on}</p>` : ''}
+                              `<p style="margin-top:6px; font-size:0.8rem;">Submitted on: ${escapeHTML(app.applied_on)}</p>` : ''}
                         </div>
                         <div class="app-card-meta">
-                            <div class="salary">${app.salary}</div>
-                            <span class="status-chip ${isOpen ? 'text-success' : 'text-danger'}" style="margin-top:6px; display:inline-block;">
-                                ${app.status}
+                            <div class="salary">${escapeHTML(app.salary)}</div>
+                            <span class="status-chip ${statusClass}" style="margin-top:8px;">
+                                ${escapeHTML(app.status || 'Submitted')}
                             </span>
-                            ${app.resume ? `<br><a class="resume-link" href="../resume/${encodeURIComponent(app.resume)}" target="_blank">Resume</a>` : ''}
+                            ${app.resume ? `<br><a class="btn btn-outline" href="../resume/${encodeURIComponent(app.resume)}" target="_blank" style="padding:4px 10px; font-size:0.78rem; margin-top:8px;">View Applied Resume</a>` : ''}
                         </div>
                     `;
                     container.appendChild(card);
@@ -137,8 +114,19 @@
             } else if (res.status === 'error' && res.message && res.message.includes('not logged')) {
                 window.location.href = '../index.html';
             } else {
-                container.innerHTML = `<p class="text-danger">Error: ${res.message}</p>`;
+                container.innerHTML = `<p class="text-danger">Error loading applications: ${escapeHTML(res.message || '')}</p>`;
             }
+        }
+
+        function getStatusClass(status) {
+            if (!status) return 'status-submitted';
+            const s = status.toLowerCase();
+            if (s.includes('review')) return 'status-under-review';
+            if (s.includes('interview')) return 'status-interview-scheduled';
+            if (s.includes('accept')) return 'status-accepted';
+            if (s.includes('reject')) return 'status-rejected';
+            if (s.includes('offer')) return 'status-offer-letter-available';
+            return 'status-submitted';
         }
 
         async function logout() {

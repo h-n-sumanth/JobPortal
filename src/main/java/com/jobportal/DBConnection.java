@@ -8,8 +8,8 @@ public class DBConnection {
     public static Connection getConnection() throws Exception {
         Class.forName("com.mysql.cj.jdbc.Driver");
         return DriverManager.getConnection(
-                "jdbc:mysql://localhost:3306/jobportal",
-                "root",
-                "Root");
+                "jdbc:mysql://localhost:3306/jobportal?useSSL=false&allowPublicKeyRetrieval=true",
+                "username",
+                "password");
     }
 }

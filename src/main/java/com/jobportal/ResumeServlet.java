@@ -32,12 +32,13 @@ public class ResumeServlet extends HttpServlet {
         List<Map<String, Object>> resumes = new ArrayList<>();
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(
-                     "SELECT id, file_name, stored_name, created_at FROM user_resumes WHERE user_email=? ORDER BY created_at DESC")) {
+                     "SELECT id, custom_name, file_name, stored_name, created_at FROM user_resumes WHERE user_email=? ORDER BY created_at DESC")) {
             ps.setString(1, email);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     Map<String, Object> resume = new HashMap<>();
                     resume.put("id", rs.getInt("id"));
+                    resume.put("customName", rs.getString("custom_name"));
                     resume.put("fileName", rs.getString("file_name"));
                     resume.put("storedName", rs.getString("stored_name"));
                     resume.put("createdAt", rs.getString("created_at"));
@@ -60,6 +61,13 @@ public class ResumeServlet extends HttpServlet {
         if (email == null) { write(res, 401, error("User not logged in")); return; }
         if ("delete".equals(req.getParameter("action"))) { delete(req, res, email); return; }
 
+        String customName = req.getParameter("customName");
+        if (customName == null || customName.trim().isEmpty()) {
+            customName = "Resume";
+        } else {
+            customName = customName.trim();
+        }
+
         try (Connection con = DBConnection.getConnection()) {
             try (PreparedStatement count = con.prepareStatement("SELECT COUNT(*) FROM user_resumes WHERE user_email=?")) {
                 count.setString(1, email);
@@ -76,20 +84,21 @@ public class ResumeServlet extends HttpServlet {
             String storedName = FileStorageUtil.save(resume, getServletContext(), "resume",
                     Set.of(".pdf", ".doc", ".docx"), 5 * 1024 * 1024);
             try (PreparedStatement insert = con.prepareStatement(
-                    "INSERT INTO user_resumes(user_email, file_name, stored_name) VALUES(?,?,?)")) {
+                    "INSERT INTO user_resumes(user_email, custom_name, file_name, stored_name) VALUES(?,?,?,?)")) {
                 insert.setString(1, email);
-                insert.setString(2, originalName);
-                insert.setString(3, storedName);
+                insert.setString(2, customName);
+                insert.setString(3, originalName);
+                insert.setString(4, storedName);
                 insert.executeUpdate();
             }
             Map<String, Object> response = new HashMap<>();
             response.put("status", "success");
-            response.put("message", "Resume added to your library");
+            response.put("message", "Resume '" + customName + "' added to your library");
             write(res, 200, response);
         } catch (IllegalArgumentException e) {
             write(res, 400, error(e.getMessage()));
         } catch (Exception e) {
-            write(res, 500, error("Unable to upload resume"));
+            write(res, 500, error("Unable to upload resume: " + e.getMessage()));
         }
     }
 

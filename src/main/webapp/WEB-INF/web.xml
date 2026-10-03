@@ -32,6 +32,24 @@
     </servlet-mapping>
 
     <servlet>
+        <servlet-name>AdminRegisterServlet</servlet-name>
+        <servlet-class>com.jobportal.AdminRegisterServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AdminRegisterServlet</servlet-name>
+        <url-pattern>/adminregister</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>CurrentAdminServlet</servlet-name>
+        <servlet-class>com.jobportal.CurrentAdminServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>CurrentAdminServlet</servlet-name>
+        <url-pattern>/currentadmin</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
         <servlet-name>AddJobServlet</servlet-name>
         <servlet-class>com.jobportal.AddJobServlet</servlet-class>
     </servlet>
@@ -58,7 +76,6 @@
         <url-pattern>/currentuser</url-pattern>
     </servlet-mapping>
 
-
     <servlet>
         <servlet-name>DeleteJobServlet</servlet-name>
         <servlet-class>com.jobportal.DeleteJobServlet</servlet-class>
@@ -66,6 +83,15 @@
     <servlet-mapping>
         <servlet-name>DeleteJobServlet</servlet-name>
         <url-pattern>/deletejob</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>DeleteApplicationServlet</servlet-name>
+        <servlet-class>com.jobportal.DeleteApplicationServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>DeleteApplicationServlet</servlet-name>
+        <url-pattern>/deleteapplication</url-pattern>
     </servlet-mapping>
 
     <servlet>
@@ -93,6 +119,15 @@
     <servlet-mapping>
         <servlet-name>ViewApplicantsServlet</servlet-name>
         <url-pattern>/viewapplicants</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>UpdateApplicationStatusServlet</servlet-name>
+        <servlet-class>com.jobportal.UpdateApplicationStatusServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>UpdateApplicationStatusServlet</servlet-name>
+        <url-pattern>/updateappstatus</url-pattern>
     </servlet-mapping>
 
     <servlet>
@@ -131,4 +166,23 @@
         <url-pattern>/resumes</url-pattern>
     </servlet-mapping>
 
+    <servlet>
+        <servlet-name>NotificationServlet</servlet-name>
+        <servlet-class>com.jobportal.NotificationServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>NotificationServlet</servlet-name>
+        <url-pattern>/notifications</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>RestApiServlet</servlet-name>
+        <servlet-class>com.jobportal.api.RestApiServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>RestApiServlet</servlet-name>
+        <url-pattern>/api/v1/*</url-pattern>
+    </servlet-mapping>
+
 </web-app>
+

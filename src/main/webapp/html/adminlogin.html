@@ -7,44 +7,50 @@
     <link rel="stylesheet" href="../css/style.css">
     <script src="../js/api.js"></script>
     <style>
-        body { display: flex; align-items: center; justify-content: center; height: 100vh; }
-        .auth-container { width: 100%; max-width: 400px; padding: 2rem; border-color: rgba(239, 68, 68, 0.4); }
+        body { display: grid; place-items: center; min-height: 100vh; padding: 1.5rem; }
+        .auth-card { width: min(420px, 100%); padding: 2.5rem; border-color: rgba(239, 68, 68, 0.4); }
     </style>
 </head>
 <body>
+    <div class="glass-panel auth-card animate-fade">
+        <div style="text-align:center; margin-bottom:1.8rem;">
+            <h2 style="color:var(--danger); margin-bottom:0.4rem;">Company Admin Login</h2>
+            <p style="font-size:0.9rem;">Sign in to publish jobs and manage candidate applications for your company.</p>
+        </div>
 
-    <div class="glass-panel auth-container animate-fade">
-        <h2 style="text-align: center; color: var(--danger);">Admin Access</h2>
-        <p style="text-align: center; margin-bottom: 2rem;">Authorized personnel only</p>
-
-        <form id="adminForm">
-            <input type="email" id="email" placeholder="Admin Email" required>
-            <input type="password" id="password" placeholder="Password" required>
-            <button type="submit" class="btn btn-danger" style="width: 100%;">Access Admin Panel</button>
+        <form id="adminLoginForm">
+            <label>Admin Email Address
+                <input type="email" id="email" placeholder="admin@company.com" required>
+            </label>
+            <label>Password
+                <input type="password" id="password" placeholder="••••••••" required>
+            </label>
+            <button class="btn btn-danger" type="submit" style="width:100%; margin-top:0.5rem;">Sign In to Admin Portal</button>
         </form>
-        <div style="text-align: center; margin-top: 1.5rem;">
-            <a href="../index.html" style="color: var(--text-muted); font-size: 0.9em;">&larr; Back Home</a>
+
+        <div style="margin-top:1.5rem; text-align:center; border-top:1px solid var(--border); padding-top:1rem;">
+            <p style="font-size:0.88rem;">New company admin? <a href="adminregister.html" style="color:var(--danger); font-weight:700;">Register your company account →</a></p>
+            <p style="font-size:0.85rem; margin-top:0.5rem;"><a href="../index.html" style="color:var(--text-muted);">← Back to Job Portal Home</a></p>
         </div>
     </div>
 
     <script>
-        document.getElementById('adminForm').addEventListener('submit', async (e) => {
+        document.getElementById('adminLoginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const btn = e.target.querySelector('button');
-            btn.innerText = 'Authenticating...';
-            
-            const res = await fetchAPI('adminlogin', 'POST', {
-                email: document.getElementById('email').value,
-                password: document.getElementById('password').value
-            });
+            const btn = e.target.querySelector('button[type="submit"]');
+            btn.disabled = true; btn.innerText = 'Signing in...';
 
-            btn.innerText = 'Access Admin Panel';
-            
-            if(res.status === 'success') {
-                showMessage('Welcome, Admin', false);
-                setTimeout(() => window.location.href = 'adminpanel.html', 1000);
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            const res = await fetchAPI('adminlogin', 'POST', { email, password });
+            btn.disabled = false; btn.innerText = 'Sign In to Admin Portal';
+
+            if (res.status === 'success') {
+                showMessage('Admin login successful!');
+                setTimeout(() => window.location.href = 'adminpanel.html', 800);
             } else {
-                showMessage(res.message || 'Access Denied', true);
+                showMessage(res.message || 'Invalid admin credentials', true);
             }
         });
     </script>

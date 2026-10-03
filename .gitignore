@@ -3,5 +3,6 @@
 /.settings/
 /.project
 /.classpath
+/.vscode/
 /src/main/webapp/resume/
 /src/main/webapp/profile-pictures/
